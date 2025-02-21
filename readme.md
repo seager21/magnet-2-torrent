@@ -36,6 +36,4 @@ Returns the magnet URI and data for a torrent
   - __announce__ – An array of URLs of all tracker announces for the torrent.
   - __files__ – An array containing all files and their paths in the torrent.
 
-## License
 
-MIT © [Matan Kushner](https://matchai.me)

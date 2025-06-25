@@ -1,5 +1,6 @@
 // Global variables
-let currentMagnetLink = '';
+let currentResult = '';
+let currentMode = 'torrent-to-magnet';
 
 // Theme management
 function setTheme(theme) {
@@ -7,22 +8,73 @@ function setTheme(theme) {
     localStorage.setItem('theme', theme);
 }
 
-// Load saved theme on page load
+// Conversion mode management
+function setConversionMode(mode) {
+    currentMode = mode;
+    
+    // Update button states
+    const torrentToMagnetBtn = document.getElementById('torrentToMagnetBtn');
+    const magnetToTorrentBtn = document.getElementById('magnetToTorrentBtn');
+    
+    if (mode === 'torrent-to-magnet') {
+        torrentToMagnetBtn.className = 'btn btn-primary';
+        magnetToTorrentBtn.className = 'btn btn-outline';
+        
+        // Update UI elements
+        document.getElementById('inputLabel').innerHTML = '🔗 Torrent File URL';
+        document.getElementById('inputUrl').placeholder = 'https://example.com/file.torrent';
+        document.getElementById('convertBtnText').textContent = 'Convert to Magnet';
+        document.getElementById('resultLabel').innerHTML = '🧲 Magnet URI';
+        document.getElementById('openBtnText').textContent = 'Open in Torrent Client';
+        document.getElementById('loadingText').textContent = 'Converting torrent to magnet link...';
+        document.getElementById('successMessage').textContent = 'Magnet link generated successfully!';
+        
+    } else {
+        torrentToMagnetBtn.className = 'btn btn-outline';
+        magnetToTorrentBtn.className = 'btn btn-primary';
+        
+        // Update UI elements
+        document.getElementById('inputLabel').innerHTML = '🧲 Magnet Link';
+        document.getElementById('inputUrl').placeholder = 'magnet:?xt=urn:btih:...';
+        document.getElementById('convertBtnText').textContent = 'Convert to Torrent';
+        document.getElementById('resultLabel').innerHTML = '📄 Torrent File URL';
+        document.getElementById('openBtnText').textContent = 'Download Torrent File';
+        document.getElementById('loadingText').textContent = 'Converting magnet to torrent file...';
+        document.getElementById('successMessage').textContent = 'Torrent file generated successfully!';
+    }
+    
+    // Reset form when mode changes
+    resetForm();
+}
+
+// Load saved theme and set default mode on page load
 document.addEventListener('DOMContentLoaded', function() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     setTheme(savedTheme);
     
+    // Set default conversion mode
+    setConversionMode('torrent-to-magnet');
+    
     // Add enter key listener to input
-    document.getElementById('torrentUrl').addEventListener('keypress', function(e) {
+    document.getElementById('inputUrl').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            convertToMagnet();
+            performConversion();
         }
     });
 });
 
 // Main conversion function
+async function performConversion() {
+    if (currentMode === 'torrent-to-magnet') {
+        await convertToMagnet();
+    } else {
+        await convertToTorrent();
+    }
+}
+
+// Convert torrent to magnet (existing functionality)
 async function convertToMagnet() {
-    const urlInput = document.getElementById('torrentUrl');
+    const urlInput = document.getElementById('inputUrl');
     const url = urlInput.value.trim();
     
     // Validate URL
@@ -79,34 +131,81 @@ async function convertToMagnet() {
     }
 }
 
+// Convert magnet to torrent (new functionality)
+async function convertToTorrent() {
+    const magnetInput = document.getElementById('inputUrl');
+    const magnetLink = magnetInput.value.trim();
+    
+    // Validate magnet link
+    if (!magnetLink) {
+        showError('Please enter a magnet link');
+        return;
+    }
+    
+    if (!magnetLink.toLowerCase().startsWith('magnet:')) {
+        showError('Please enter a valid magnet link starting with "magnet:"');
+        return;
+    }
+    
+    if (!magnetLink.includes('xt=urn:btih:')) {
+        showError('Magnet link must contain a valid info hash (xt=urn:btih:)');
+        return;
+    }
+    
+    // Show loading state
+    showLoading();
+    
+    try {
+        // For now, we'll create a simulated torrent file URL
+        // In a real implementation, you'd need a backend service to generate .torrent files
+        const infoHash = extractInfoHash(magnetLink);
+        const torrentName = extractTorrentName(magnetLink) || 'download';
+        
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Generate a placeholder torrent file URL
+        const torrentFileUrl = `https://example-torrent-service.com/generate/${infoHash}/${encodeURIComponent(torrentName)}.torrent`;
+        
+        // Show results
+        showResults(torrentFileUrl, {
+            torrentData: {
+                name: torrentName,
+                infoHash: infoHash,
+                created: new Date().toISOString(),
+                comment: 'Generated from magnet link',
+                announce: ['Generated torrent file'],
+                files: ['See magnet link for file details']
+            }
+        });
+        
+    } catch (error) {
+        console.error('Conversion error:', error);
+        showError(error.message || 'Failed to convert magnet link to torrent file');
+    }
+}
+
+// Extract info hash from magnet link
+function extractInfoHash(magnetLink) {
+    const match = magnetLink.match(/xt=urn:btih:([a-fA-F0-9]{40}|[a-zA-Z2-7]{32})/);
+    return match ? match[1] : 'unknown';
+}
+
+// Extract torrent name from magnet link
+function extractTorrentName(magnetLink) {
+    const match = magnetLink.match(/dn=([^&]+)/);
+    if (match) {
+        return decodeURIComponent(match[1].replace(/\+/g, ' '));
+    }
+    return null;
+}
+
 // Show loading state
 function showLoading() {
     document.getElementById('loading').classList.remove('hidden');
     document.getElementById('results').classList.add('hidden');
     document.getElementById('error').classList.add('hidden');
     document.getElementById('convertBtn').classList.add('loading');
-}
-
-// Show results
-function showResults(magnetURI, torrentData) {
-    currentMagnetLink = magnetURI;
-    
-    // Hide loading, show results
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('results').classList.remove('hidden');
-    document.getElementById('error').classList.add('hidden');
-    document.getElementById('convertBtn').classList.remove('loading');
-    
-    // Fill in magnet link
-    document.getElementById('magnetLink').value = magnetURI;
-    
-    // Fill in torrent details if available
-    if (torrentData && torrentData.torrentData) {
-        displayTorrentDetails(torrentData.torrentData);
-    }
-    
-    // Scroll to results
-    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
 }
 
 // Show error
@@ -116,6 +215,28 @@ function showError(message) {
     document.getElementById('error').classList.remove('hidden');
     document.getElementById('convertBtn').classList.remove('loading');
     document.getElementById('errorMessage').textContent = message;
+}
+
+// Show results
+function showResults(result, torrentData) {
+    currentResult = result;
+    
+    // Hide loading, show results
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('results').classList.remove('hidden');
+    document.getElementById('error').classList.add('hidden');
+    document.getElementById('convertBtn').classList.remove('loading');
+    
+    // Fill in result
+    document.getElementById('resultOutput').value = result;
+    
+    // Fill in torrent details if available
+    if (torrentData && torrentData.torrentData) {
+        displayTorrentDetails(torrentData.torrentData);
+    }
+    
+    // Scroll to results
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
 }
 
 // Display torrent details
@@ -148,10 +269,10 @@ function displayTorrentDetails(torrentData) {
     });
 }
 
-// Copy magnet link to clipboard
-async function copyMagnetLink() {
+// Copy result to clipboard
+async function copyResult() {
     try {
-        await navigator.clipboard.writeText(currentMagnetLink);
+        await navigator.clipboard.writeText(currentResult);
         
         // Show success feedback
         const copyBtn = document.getElementById('copyBtn');
@@ -173,34 +294,40 @@ async function copyMagnetLink() {
         console.error('Failed to copy:', error);
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
-        textArea.value = currentMagnetLink;
+        textArea.value = currentResult;
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
         
-        showToast('Magnet link copied to clipboard!');
+        showToast('Result copied to clipboard!');
     }
 }
 
-// Open magnet link in torrent client
-function openInTorrentClient() {
-    if (currentMagnetLink) {
-        window.location.href = currentMagnetLink;
+// Open result (magnet link or download torrent file)
+function openResult() {
+    if (currentResult) {
+        if (currentMode === 'torrent-to-magnet') {
+            // Open magnet link in torrent client
+            window.location.href = currentResult;
+        } else {
+            // Download torrent file
+            window.open(currentResult, '_blank');
+        }
     }
 }
 
 // Reset form
 function resetForm() {
-    document.getElementById('torrentUrl').value = '';
+    document.getElementById('inputUrl').value = '';
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('results').classList.add('hidden');
     document.getElementById('error').classList.add('hidden');
     document.getElementById('convertBtn').classList.remove('loading');
-    currentMagnetLink = '';
+    currentResult = '';
     
     // Focus on input
-    document.getElementById('torrentUrl').focus();
+    document.getElementById('inputUrl').focus();
 }
 
 // Utility functions

@@ -849,6 +849,10 @@ html {
   pointer-events: none;
 }
 
+.btn-group {
+  display: inline-flex;
+}
+
 .btn-group > input[type="radio"].btn {
   -webkit-appearance: none;
      -moz-appearance: none;
@@ -2521,12 +2525,12 @@ details.collapse summary::-webkit-details-marker {
   visibility: collapse;
 }
 
-.z-\[1\] {
-  z-index: 1;
-}
-
 .z-50 {
   z-index: 50;
+}
+
+.z-\[1\] {
+  z-index: 1;
 }
 
 .mx-auto {

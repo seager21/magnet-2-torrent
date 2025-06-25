@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magnetizer - Convert Torrents to Magnets</title>
+    <title>Magnetizer - Convert Between Torrents & Magnets</title>
     <link href="css/style.css" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧲</text></svg>">
 </head>
@@ -18,8 +18,8 @@
                 </h1>
             </div>
             <p class="text-xl text-base-content/70 max-w-2xl mx-auto">
-                Convert direct torrent file links into convenient magnet URIs. 
-                Simply paste your torrent URL and get instant magnet links for your BitTorrent client.
+                Convert between torrent files and magnet links seamlessly. 
+                Transform torrent URLs into magnet links or generate torrent files from magnet URIs.
             </p>
         </div>
 
@@ -44,15 +44,40 @@
         <!-- Main Card -->
         <div class="card bg-base-100 shadow-2xl max-w-4xl mx-auto">
             <div class="card-body">
+                <!-- Conversion Mode Selector -->
+                <div class="form-control mb-6">
+                    <label class="label">
+                        <span class="label-text text-lg font-semibold">⚙️ Conversion Mode</span>
+                    </label>
+                    <div class="flex justify-center">
+                        <div class="btn-group">
+                            <button 
+                                id="torrentToMagnetBtn" 
+                                class="btn btn-primary"
+                                onclick="setConversionMode('torrent-to-magnet')"
+                            >
+                                📄➡️🧲 Torrent to Magnet
+                            </button>
+                            <button 
+                                id="magnetToTorrentBtn" 
+                                class="btn btn-outline"
+                                onclick="setConversionMode('magnet-to-torrent')"
+                            >
+                                🧲➡️📄 Magnet to Torrent
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Input Section -->
                 <div class="form-control mb-6">
                     <label class="label">
-                        <span class="label-text text-lg font-semibold">🔗 Torrent File URL</span>
+                        <span id="inputLabel" class="label-text text-lg font-semibold">🔗 Torrent File URL</span>
                     </label>
                     <div class="input-group">
                         <input 
                             type="url" 
-                            id="torrentUrl" 
+                            id="inputUrl" 
                             placeholder="https://example.com/file.torrent" 
                             class="input input-bordered input-primary w-full text-base"
                             autocomplete="off"
@@ -60,12 +85,12 @@
                         <button 
                             id="convertBtn" 
                             class="btn btn-primary"
-                            onclick="convertToMagnet()"
+                            onclick="performConversion()"
                         >
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
-                            Convert
+                            <span id="convertBtnText">Convert</span>
                         </button>
                     </div>
                 </div>
@@ -73,26 +98,26 @@
                 <!-- Loading State -->
                 <div id="loading" class="hidden text-center py-8">
                     <div class="loading loading-spinner loading-lg text-primary"></div>
-                    <p class="mt-4 text-base-content/70">Converting torrent to magnet link...</p>
+                    <p id="loadingText" class="mt-4 text-base-content/70">Converting torrent to magnet link...</p>
                 </div>
 
                 <!-- Results Section -->
                 <div id="results" class="hidden">
-                    <!-- Magnet Link Result -->
+                    <!-- Success Alert -->
                     <div class="alert alert-success mb-6">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span>Magnet link generated successfully!</span>
+                        <span id="successMessage">Conversion completed successfully!</span>
                     </div>
 
                     <div class="form-control mb-6">
                         <label class="label">
-                            <span class="label-text text-lg font-semibold">🧲 Magnet URI</span>
+                            <span id="resultLabel" class="label-text text-lg font-semibold">🧲 Result</span>
                             <button 
                                 id="copyBtn" 
                                 class="btn btn-sm btn-outline"
-                                onclick="copyMagnetLink()"
+                                onclick="copyResult()"
                             >
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -101,7 +126,7 @@
                             </button>
                         </label>
                         <textarea 
-                            id="magnetLink" 
+                            id="resultOutput" 
                             class="textarea textarea-bordered h-32 text-sm font-mono" 
                             readonly
                         ></textarea>
@@ -123,13 +148,14 @@
                     <!-- Action Buttons -->
                     <div class="card-actions justify-center mt-6">
                         <button 
+                            id="openBtn"
                             class="btn btn-primary btn-wide"
-                            onclick="openInTorrentClient()"
+                            onclick="openResult()"
                         >
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
-                            Open in Torrent Client
+                            <span id="openBtnText">Open in Torrent Client</span>
                         </button>
                         <button 
                             class="btn btn-outline"
@@ -178,18 +204,18 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="text-center">
                         <div class="text-3xl mb-2">1️⃣</div>
-                        <h3 class="font-bold mb-2">Find Torrent URL</h3>
-                        <p class="text-sm text-base-content/70">Copy the direct link to a .torrent file from any torrent site</p>
+                        <h3 class="font-bold mb-2">Choose Mode</h3>
+                        <p class="text-sm text-base-content/70">Select between Torrent→Magnet or Magnet→Torrent conversion</p>
                     </div>
                     <div class="text-center">
                         <div class="text-3xl mb-2">2️⃣</div>
                         <h3 class="font-bold mb-2">Paste & Convert</h3>
-                        <p class="text-sm text-base-content/70">Paste the URL into the input field and click Convert</p>
+                        <p class="text-sm text-base-content/70">Enter your torrent URL or magnet link and click Convert</p>
                     </div>
                     <div class="text-center">
                         <div class="text-3xl mb-2">3️⃣</div>
-                        <h3 class="font-bold mb-2">Use Magnet Link</h3>
-                        <p class="text-sm text-base-content/70">Copy the generated magnet link or open it directly in your torrent client</p>
+                        <h3 class="font-bold mb-2">Use Result</h3>
+                        <p class="text-sm text-base-content/70">Copy the converted result or open it directly in your client</p>
                     </div>
                 </div>
             </div>

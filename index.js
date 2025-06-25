@@ -10,8 +10,11 @@ const port = process.env.PORT || 8080;
 
 app.use(morgan('dev'));
 
+// Serve static files from public directory
+app.use(express.static('public'));
+
 app.get('/', (req, res) => {
-	res.send('Try sending a url!');
+	res.sendFile(__dirname + '/public/index.html');
 });
 
 app.get('/*', (req, res) => {
@@ -35,7 +38,6 @@ app.get('/*', (req, res) => {
 							message
 						}
 					});
-				res.send(`${err.name}: ${err.message}`);
 			});
 	} else {
 		res.sendStatus(404);

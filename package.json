@@ -12,9 +12,15 @@
   "license": "MIT",
   "scripts": {
     "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build-css": "tailwindcss -i ./src/input.css -o ./public/css/style.css",
+    "watch-css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",
     "test": "xo"
   },
   "devDependencies": {
+    "daisyui": "^3.9.4",
+    "nodemon": "^3.1.10",
+    "tailwindcss": "^3.3.0",
     "xo": "^0.17.1"
   },
   "xo": {

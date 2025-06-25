@@ -5,35 +5,108 @@
 	<br>
 </h1>
 
-> API - Converts direct links to torrents into magnet links
+> 🧲 Convert direct torrent file links into magnet URIs with a beautiful web interface
 
-## Install
+## ✨ Features
 
+- **Beautiful Web Interface** - Modern, responsive UI built with Tailwind CSS and DaisyUI
+- **Multiple Themes** - Dark, Light, Cyberpunk, and Synthwave themes
+- **Instant Conversion** - Convert .torrent URLs to magnet links in seconds
+- **Detailed Information** - View torrent metadata including files, trackers, and creation date
+- **Copy & Share** - One-click copying of magnet links
+- **Direct Client Integration** - Open magnet links directly in your torrent client
+
+## 🚀 Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/seager21/magnet-2-torrent.git
+cd magnet-2-torrent
+
+# Install dependencies
+npm install
+
+# Build CSS styles
+npm run build-css
+
+# Start the server
+npm start
 ```
-$ npm install
-$ npm start
+
+### Development
+
+```bash
+# Start development server with auto-restart
+npm run dev
+
+# Watch CSS changes during development
+npm run watch-css
 ```
 
-*A local instance of magnetizer will be running at http://localhost:8080.*
+*The application will be running at http://localhost:8080*
 
-## API
+## 🎯 How to Use
 
-#### <code>GET</code> /:url
+1. **Find a Torrent URL** - Copy the direct link to a .torrent file
+2. **Paste & Convert** - Enter the URL in the web interface and click Convert
+3. **Get Your Magnet Link** - Copy the generated magnet URI or open it directly in your torrent client
 
-Returns the magnet URI and data for a torrent
+## 🛠️ API
 
-##### Parameters
+The application also provides a REST API for programmatic access:
 
-- __url__ – The full URL (including protocol) to a torrent file.
+#### `GET` /:url
 
-##### Return format
-- __magnetURI__ – The complete magnetURI of the torrent file.
-- __torrentData__ – The torrent data attainable from the torrent header.
-  - __name__ – Name as specified by the torrent creator.
-  - __created__ – The date the torrent was created in ISO 8601 format.
-  - __comment__ – Comment as specified by the torrent creator.
-  - __infoHash__ – The SHA1 hash sums of the torrent's meta files.
-  - __announce__ – An array of URLs of all tracker announces for the torrent.
-  - __files__ – An array containing all files and their paths in the torrent.
+Returns the magnet URI and metadata for a torrent file.
+
+**Parameters:**
+- `url` - The full URL (including protocol) to a torrent file
+
+**Response Headers:**
+- `magnetURI` - The complete magnet URI of the torrent file
+
+**Response Body:**
+- `torrentData` - Detailed torrent metadata including:
+  - `name` - Torrent name
+  - `created` - Creation date
+  - `comment` - Creator comment
+  - `infoHash` - SHA1 hash
+  - `announce` - Tracker URLs
+  - `files` - File list
+
+## 🎨 Built With
+
+- **Backend**: Node.js, Express.js
+- **Frontend**: HTML5, Vanilla JavaScript
+- **Styling**: Tailwind CSS v3.3.0, DaisyUI v3.9.4
+- **Icons**: Heroicons, Emoji
+
+## 📱 Themes
+
+Choose from multiple beautiful themes:
+- 🌙 **Dark** - Clean dark interface
+- ☀️ **Light** - Bright and clean
+- 🤖 **Cyberpunk** - Futuristic neon vibes
+- 🎵 **Synthwave** - Retro 80s aesthetic
+
+## 🔧 Configuration
+
+The application can be configured through environment variables:
+
+- `PORT` - Server port (default: 8080)
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## ⭐ Show Your Support
+
+Give a ⭐️ if this project helped you!
 
 
